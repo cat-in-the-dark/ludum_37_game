@@ -112,6 +112,7 @@ public class WorldRotation : MonoBehaviour {
 		foreach (var room in roomGroup) {
 			room.transform.parent = roomGroupGO.transform;
 		}
+
 		roomGroupGO.transform.Rotate (axis, angleDelta);
 	}
 }
