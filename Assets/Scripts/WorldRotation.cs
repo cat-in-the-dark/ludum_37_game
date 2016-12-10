@@ -3,11 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class WorldRotation : MonoBehaviour {
+	public float angleSpeed;
 
 	IDictionary<string, GameObject> rooms = new Dictionary<string, GameObject>();
 	float currentRotation;
-	public float angleSpeed = 60;
-	public bool rotating = false;
+	bool rotating = false;
 	Vector2[] roomGroup = null;
 	Vector3 axis = Vector3.zero;
 
@@ -41,26 +41,26 @@ public class WorldRotation : MonoBehaviour {
 		// ==== Y ====
 		if (Input.GetKeyDown (KeyCode.U)) {
 			StartRotation (
-				roomGroup:new Vector2[]{ new Vector2(1,1), new Vector2(1,2), new Vector2(1,3), new Vector2(1,4) }, 
+				roomGroup:new Vector2[]{ new Vector2(1,1), new Vector2(1,2), new Vector2(2,1), new Vector2(2,2) }, 
 				axis: Vector3.back);
 		}
 
 		if (Input.GetKeyDown (KeyCode.I)) {
 			StartRotation (
-				roomGroup: new Vector2[]{ new Vector2(1,1), new Vector2(1,2), new Vector2(1,3), new Vector2(1,4) }, 
+				roomGroup: new Vector2[]{ new Vector2(1,1), new Vector2(1,2), new Vector2(2,1), new Vector2(2,2) }, 
 				axis: Vector3.forward);
 		}
 
 		// ==== Z ====
 		if (Input.GetKeyDown (KeyCode.N)) {
 			StartRotation (
-				roomGroup:new Vector2[]{ new Vector2(1,1), new Vector2(1,2), new Vector2(1,3), new Vector2(1,4) }, 
+				roomGroup:new Vector2[]{ new Vector2(1,2), new Vector2(1,3), new Vector2(2,2), new Vector2(2,3) }, 
 				axis: Vector3.left);
 		}
 
 		if (Input.GetKeyDown (KeyCode.M)) {
 			StartRotation (
-				roomGroup: new Vector2[]{ new Vector2(1,1), new Vector2(1,2), new Vector2(1,3), new Vector2(1,4) }, 
+				roomGroup:new Vector2[]{ new Vector2(1,2), new Vector2(1,3), new Vector2(2,2), new Vector2(2,3) }, 
 				axis: Vector3.right);
 		}
 
