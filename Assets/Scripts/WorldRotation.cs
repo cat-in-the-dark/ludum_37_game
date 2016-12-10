@@ -79,12 +79,13 @@ public class WorldRotation : MonoBehaviour {
 			foreach (var room in rooms) {
 				room.Value.transform.SetParent (null);
 			}
+			roomGroupGO.transform.eulerAngles = Vector3.zero;
 		}
 	}
 
 	void Rotate(Vector2[] roomGroupIds, Vector3 axis) {
 		if (roomGroupIds == null) return;
-		if (currentRotation >= 90.0f) {
+		if (Mathf.Abs (currentRotation) >= 90.0f) {
 			roomGroupGO.transform.eulerAngles = axis * 90.0f;
 			rotating = false;
 			return;
@@ -109,8 +110,6 @@ public class WorldRotation : MonoBehaviour {
 
 		roomGroupGO.transform.position = center;
 		foreach (var room in roomGroup) {
-//			Debug.Log (currentRotation.ToString ());
-//			room.transform.RotateAround (center, axis, angleDelta);
 			room.transform.parent = roomGroupGO.transform;
 		}
 		roomGroupGO.transform.Rotate (axis, angleDelta);
