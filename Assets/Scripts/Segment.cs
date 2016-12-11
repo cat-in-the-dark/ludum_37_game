@@ -71,4 +71,19 @@ public class Segment : MonoBehaviour {
 
 		return neighbourChain;
 	}
+
+	public Segment findNearest(List<Segment> segments) {
+		var minDist = Mathf.Infinity;
+		Segment nearestSegment = segments[0];
+		foreach (Segment segment in segments) {
+			var dist = (segment.gameObject.transform.position
+			           - this.gameObject.transform.position).magnitude;
+			if (dist < minDist) {
+				minDist = dist;
+				nearestSegment = segment;
+			}
+		}
+
+		return nearestSegment;
+	}
 }

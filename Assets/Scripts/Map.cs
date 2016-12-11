@@ -15,17 +15,30 @@ public class Map : MonoBehaviour {
 	public float horizontalSpeed = 2.0F;
 	public float verticalSpeed = 2.0F;
 
+	public float RotationLerpSpeed = 20f;
+	float lerpTreshold = 0.02f;
+	float LerpProgerss = 0f;
+
 	Vector3 axis;
-	GameObject segmentGroupGo;
-	float currentRotation;
+	GameObject SegmentGroupGo;
+	GameObject TargetGo;
+	GameObject OldGo;
 	bool isRotatedByUser;
+	bool isRotatedFinishing;
+	List<Segment> RotatingSegments;
+	List<Segment> StaticSegments;
+	Vector3 RotationCenter;
+	Vector3 StaticCenter;
+	Transform TargetTransform;
 
 	// Use this for initialization
 	void Start () {
 		touchDownPos = Vector3.zero;
-		currentRotation = 0f;
 		isRotatedByUser = false;
-		segmentGroupGo = new GameObject ("segmentGroup");
+		isRotatedFinishing = false;
+		RotationCenter = Vector3.zero;
+		StaticCenter = Vector3.zero;
+		SegmentGroupGo = new GameObject ("segmentGroup");
 	}
 
 	public void initSegments(Vector3 initialPos, Vector3 initialRot) {
@@ -84,6 +97,7 @@ public class Map : MonoBehaviour {
 		for (type = 0; type < 3; type++) {
 			if (touchedSegment.neighbour [type].hasUser) {
 				neighbourWithUser = touchedSegment.neighbour [type];
+				break;
 			}
 		}
 
@@ -106,12 +120,15 @@ public class Map : MonoBehaviour {
 
 		List<Segment> staticChain = neighbourWithUser.getNeighbourChain (type);
 
-		Vector3 rotationCenter = calcCenter (rotationChain);
-		Vector3 staticCenter = calcCenter (staticChain);
+		RotationCenter = calcCenter (rotationChain);
+		StaticCenter = calcCenter (staticChain);
 
-		axis = staticCenter - rotationCenter;
+		RotatingSegments = rotationChain;
+		StaticSegments = staticChain;
 
-		StartRotation (rotationChain, rotationCenter, axis);
+		axis = StaticCenter - RotationCenter;
+
+		StartRotation (rotationChain, RotationCenter, axis);
 	}
 
 	Vector3 calcCenter(List<Segment> segmentList) {
@@ -129,34 +146,81 @@ public class Map : MonoBehaviour {
 	}
 
 	void StartRotation(List<Segment> segmentList, Vector3 center, Vector3 axis) {
-		if (!this.isRotatedByUser) {
+		if (!this.isRotatedByUser && !isRotatedFinishing) {
 			this.isRotatedByUser = true;
-			this.currentRotation = 0f;
 			this.axis = axis;
 			foreach (Segment segment in Segments.Values) {
 				segment.transform.SetParent (null);
 			}
 
-			segmentGroupGo.transform.position = center;
-			segmentGroupGo.transform.eulerAngles = Vector3.zero;
+			SegmentGroupGo.transform.position = center;
+			SegmentGroupGo.transform.eulerAngles = Vector3.zero;
 			foreach (Segment segment in segmentList) {
-				segment.transform.parent = segmentGroupGo.transform;
+				segment.transform.parent = SegmentGroupGo.transform;
 			}
+		} else {
+			Debug.Log ("Too early to rotate");
 		}
 	}
 
 	void onTouchedUp(int index) {
 		//Debug.Log(string.Format("{0} {1}", "tut", index));
+		if (!isRotatedByUser) {
+			return;
+		}
+
 		touchIndex = -1;
 		isRotatedByUser = false;
+		Segment targetRotationSegment = RotatingSegments [0];
+		Segment nearestInStatic = targetRotationSegment.findNearest (StaticSegments);
+		//Debug.Log (string.Format ("nearest to {0} is {1}", RotatingSegments [0].index, nearestInStatic.index));
+		int rotatedBy = 0;
+		foreach (Segment rotatingSegment in RotatingSegments) {
+			bool flag = false;
+			for (int type = 0; type < 3; type++) {
+				if (rotatingSegment.neighbour [type].index == nearestInStatic.index) {
+					flag = true;
+					break;
+				}
+			}
+
+			if (flag) {
+				break;
+			}
+
+			rotatedBy++;
+		}
+
+		TargetGo = new GameObject ("TargetGO");
+		TargetGo.transform.position = RotationCenter;
+		TargetGo.transform.eulerAngles = Vector3.zero;
+		TargetGo.transform.Rotate (axis, rotatedBy * 90);
+
+		OldGo = new GameObject ("OldGo");
+		OldGo.transform.position = SegmentGroupGo.transform.position;
+		OldGo.transform.rotation = SegmentGroupGo.transform.rotation;
+		isRotatedFinishing = true;
+
+		Debug.Log (string.Format ("rotated by {0}", rotatedBy));
 	}
 	
 	// Update is called once per frame
 	void Update () {
 		if (isRotatedByUser) {
-			float h = horizontalSpeed * Input.GetAxis("Mouse X");
-			float v = verticalSpeed * Input.GetAxis("Mouse Y");
-			segmentGroupGo.transform.Rotate (axis, h + v);
+			float h = horizontalSpeed * Input.GetAxis ("Mouse X");
+			float v = verticalSpeed * Input.GetAxis ("Mouse Y");
+			var angleDelta = h + v;
+
+			SegmentGroupGo.transform.Rotate (axis, angleDelta);
+		} else if (isRotatedFinishing) {
+			SegmentGroupGo.transform.rotation = 
+				Quaternion.Lerp (OldGo.transform.rotation, TargetGo.transform.rotation, LerpProgerss);
+			LerpProgerss += Time.deltaTime * RotationLerpSpeed;
+			if (Mathf.Abs(LerpProgerss - 1) < lerpTreshold) {
+				isRotatedFinishing = false;
+				LerpProgerss = 0f;
+				Debug.Log ("finish rotation");
+			}
 		}
 	}
 }
