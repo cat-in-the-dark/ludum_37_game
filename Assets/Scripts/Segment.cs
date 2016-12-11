@@ -5,15 +5,8 @@ using System;
 
 public class Segment : MonoBehaviour {
 
-	public Segment[] neighbour = new Segment[3];
 	public bool hasUser = false;
 	public int index = -1;
-
-	public enum DIRECTION {
-		XY = 0,
-		XZ = 1,
-		YZ = 2
-	}
 
 	Action<int> tounchDownCallback;
 	Action<int> touchUpCallback;
@@ -47,29 +40,9 @@ public class Segment : MonoBehaviour {
 		}
 	}
 
-	public bool hasNeighbourInChain (Segment target, int type) {
-		Segment curNeighbour = this.neighbour[type];
-		while (curNeighbour.index != this.index) {
-			if (curNeighbour.index == target.index) {
-				return true;
-			}
-
-			curNeighbour = curNeighbour.neighbour[type];
-		}
-
-		return false;
-	}
-
-	public List<Segment> getNeighbourChain(int type) {
-		List<Segment> neighbourChain = new List<Segment> ();
-		neighbourChain.Add (this);
-		Segment currNeighbour = this.neighbour[type];
-		while (currNeighbour.index != this.index) {
-			neighbourChain.Add (currNeighbour);
-			currNeighbour = currNeighbour.neighbour [type];
-		}
-
-		return neighbourChain;
+	public bool isNeighbour(Segment segment) {
+		return (this.index != segment.index
+			&& (this.transform.position - segment.transform.position).magnitude <= 1.01f);
 	}
 
 	public Segment findNearest(List<Segment> segments) {

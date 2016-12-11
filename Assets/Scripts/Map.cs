@@ -18,6 +18,7 @@ public class Map : MonoBehaviour {
 	public float RotationLerpSpeed = 20f;
 	float lerpTreshold = 0.02f;
 	float LerpProgerss = 0f;
+	float CurrentRotation = 0f;
 
 	Vector3 axis;
 	GameObject SegmentGroupGo;
@@ -39,6 +40,8 @@ public class Map : MonoBehaviour {
 		RotationCenter = Vector3.zero;
 		StaticCenter = Vector3.zero;
 		SegmentGroupGo = new GameObject ("segmentGroup");
+		TargetGo = new GameObject ("TargetGO");
+		OldGo = new GameObject ("OldGo");
 	}
 
 	public void initSegments(Vector3 initialPos, Vector3 initialRot) {
@@ -53,22 +56,12 @@ public class Map : MonoBehaviour {
 
 			Segments.Add (i, segment);
 		}
-
-		connectNeighbours (new int[] { 0, 1, 5, 4 }, Segment.DIRECTION.XY);
-		connectNeighbours (new int[] { 2, 6, 7, 3 }, Segment.DIRECTION.XY);
-
-		connectNeighbours (new int[] { 0, 2, 3, 1 }, Segment.DIRECTION.XZ);
-		connectNeighbours (new int[] { 5, 7, 6, 4 }, Segment.DIRECTION.XZ);
-
-		connectNeighbours (new int[] { 0, 4, 6, 2 }, Segment.DIRECTION.YZ);
-		connectNeighbours (new int[] { 1, 3, 7, 5 }, Segment.DIRECTION.YZ);
 	}
 
 	public void setUserPresent(int index) {
 		if (Segments.Count >= index - 1) {
 			foreach (Segment segment in Segments.Values) {
 				if (segment.hasUser) {
-					Debug.Log (string.Format ("user present {0} -> {1}", segment.index, index));
 					segment.hasUser = false;
 					break;
 				}
@@ -78,26 +71,17 @@ public class Map : MonoBehaviour {
 		}
 	}
 
-	void connectNeighbours(int[] indexes, Segment.DIRECTION type) {
-		int i;
-		for (i = 0; i < 3; i++) {
-			Segments [indexes[i]].neighbour [(int)type] = Segments[indexes[i + 1]];
-		}
-
-		Segments [indexes [i]].neighbour [(int)type] = Segments[indexes[0]];
-	}
-
 	void onTouchedDown(int index) {
-		Debug.Log(string.Format("{0} {1}", "tut", index));
 		touchIndex = index;
 		touchDownPos = Input.mousePosition;
 		Segment touchedSegment = Segments [index];
 		Segment neighbourWithUser = null;
-		int type;
-		for (type = 0; type < 3; type++) {
-			if (touchedSegment.neighbour [type].hasUser) {
-				neighbourWithUser = touchedSegment.neighbour [type];
-				break;
+		foreach (Segment segment in Segments.Values) {
+			if (segment.isNeighbour(touchedSegment)) {
+				if (segment.hasUser) {
+					neighbourWithUser = segment;
+					break;
+				}
 			}
 		}
 
@@ -105,30 +89,44 @@ public class Map : MonoBehaviour {
 			return;
 		}
 
-		List<Segment> rotationChain = null;
-		for (type = 0; type < 3; type++) {
-			if (!touchedSegment.hasNeighbourInChain(neighbourWithUser, type)) {
-				rotationChain = touchedSegment.getNeighbourChain (type);
-				break;
+		List<Segment> rotationSlice = new List<Segment>();
+		rotationSlice.Add (touchedSegment);
+
+		//TODO: make something less stupid pls
+		foreach (Segment segment in Segments.Values) {
+			if ((segment.index != touchedSegment.index)
+				&& (segment.isNeighbour(touchedSegment))
+				&& (!segment.isNeighbour(neighbourWithUser))
+				&& (segment.index != neighbourWithUser.index)
+				&& (!rotationSlice.Contains(segment))) {
+				rotationSlice.Add (segment);
 			}
 		}
 
-		if (rotationChain == null) {
-			Debug.LogError ("WTF all chains have segment with user as neighbour");
-			return;
+		foreach (Segment segment in Segments.Values) {
+			if (segment.isNeighbour(rotationSlice[1])
+				&& (segment.isNeighbour(rotationSlice[2]))
+				&& (!rotationSlice.Contains(segment))) {
+				rotationSlice.Add (segment);
+			}
 		}
 
-		List<Segment> staticChain = neighbourWithUser.getNeighbourChain (type);
+		List<Segment> staticSlice = new List<Segment> ();
+		foreach (Segment segment in Segments.Values) {
+			if (!rotationSlice.Contains (segment)) {
+				staticSlice.Add (segment);
+			}
+		}
 
-		RotationCenter = calcCenter (rotationChain);
-		StaticCenter = calcCenter (staticChain);
+		RotationCenter = calcCenter (rotationSlice);
+		StaticCenter = calcCenter (staticSlice);
 
-		RotatingSegments = rotationChain;
-		StaticSegments = staticChain;
+		RotatingSegments = rotationSlice;
+		StaticSegments = staticSlice;
 
 		axis = StaticCenter - RotationCenter;
 
-		StartRotation (rotationChain, RotationCenter, axis);
+		StartRotation (rotationSlice, RotationCenter, axis);
 	}
 
 	Vector3 calcCenter(List<Segment> segmentList) {
@@ -158,50 +156,25 @@ public class Map : MonoBehaviour {
 			foreach (Segment segment in segmentList) {
 				segment.transform.parent = SegmentGroupGo.transform;
 			}
-		} else {
-			Debug.Log ("Too early to rotate");
 		}
 	}
 
 	void onTouchedUp(int index) {
-		//Debug.Log(string.Format("{0} {1}", "tut", index));
 		if (!isRotatedByUser) {
 			return;
 		}
 
 		touchIndex = -1;
 		isRotatedByUser = false;
-		Segment targetRotationSegment = RotatingSegments [0];
-		Segment nearestInStatic = targetRotationSegment.findNearest (StaticSegments);
-		//Debug.Log (string.Format ("nearest to {0} is {1}", RotatingSegments [0].index, nearestInStatic.index));
-		int rotatedBy = 0;
-		foreach (Segment rotatingSegment in RotatingSegments) {
-			bool flag = false;
-			for (int type = 0; type < 3; type++) {
-				if (rotatingSegment.neighbour [type].index == nearestInStatic.index) {
-					flag = true;
-					break;
-				}
-			}
 
-			if (flag) {
-				break;
-			}
-
-			rotatedBy++;
-		}
-
-		TargetGo = new GameObject ("TargetGO");
 		TargetGo.transform.position = RotationCenter;
 		TargetGo.transform.eulerAngles = Vector3.zero;
-		TargetGo.transform.Rotate (axis, rotatedBy * 90);
+		float rotation = Mathf.RoundToInt (CurrentRotation / 90) * 90f;
+		TargetGo.transform.Rotate (axis, rotation);
 
-		OldGo = new GameObject ("OldGo");
 		OldGo.transform.position = SegmentGroupGo.transform.position;
 		OldGo.transform.rotation = SegmentGroupGo.transform.rotation;
 		isRotatedFinishing = true;
-
-		Debug.Log (string.Format ("rotated by {0}", rotatedBy));
 	}
 	
 	// Update is called once per frame
@@ -210,16 +183,23 @@ public class Map : MonoBehaviour {
 			float h = horizontalSpeed * Input.GetAxis ("Mouse X");
 			float v = verticalSpeed * Input.GetAxis ("Mouse Y");
 			var angleDelta = h + v;
+			CurrentRotation += angleDelta;
 
+			if (CurrentRotation < 0) {
+				CurrentRotation += 360;
+			}
+
+			CurrentRotation %= 360;
 			SegmentGroupGo.transform.Rotate (axis, angleDelta);
 		} else if (isRotatedFinishing) {
 			SegmentGroupGo.transform.rotation = 
 				Quaternion.Lerp (OldGo.transform.rotation, TargetGo.transform.rotation, LerpProgerss);
 			LerpProgerss += Time.deltaTime * RotationLerpSpeed;
 			if (Mathf.Abs(LerpProgerss - 1) < lerpTreshold) {
+				SegmentGroupGo.transform.rotation = TargetGo.transform.rotation;
 				isRotatedFinishing = false;
 				LerpProgerss = 0f;
-				Debug.Log ("finish rotation");
+				CurrentRotation = 0f;
 			}
 		}
 	}
