@@ -9,7 +9,6 @@ public class Map : MonoBehaviour {
 
 	Dictionary <int, Segment> Segments = new Dictionary<int, Segment>();
 
-	int touchIndex = -1;
 	Vector3 touchDownPos;
 
 	public float horizontalSpeed = 2.0F;
@@ -21,9 +20,12 @@ public class Map : MonoBehaviour {
 	float CurrentRotation = 0f;
 
 	Vector3 axis;
-	GameObject SegmentGroupGo;
-	GameObject TargetGo;
-	GameObject OldGo;
+
+	GameObject SegmentGroupGO;
+	GameObject TargetGO;
+	GameObject OldGO;
+	GameObject SegmentContainerGO;
+
 	bool isRotatedByUser;
 	bool isRotatedFinishing;
 	List<Segment> RotatingSegments;
@@ -39,15 +41,28 @@ public class Map : MonoBehaviour {
 		isRotatedFinishing = false;
 		RotationCenter = Vector3.zero;
 		StaticCenter = Vector3.zero;
-		SegmentGroupGo = new GameObject ("segmentGroup");
-		TargetGo = new GameObject ("TargetGO");
-		OldGo = new GameObject ("OldGo");
+		SegmentContainerGO = new GameObject ("SegmentContainerGO");
+		SegmentContainerGO.transform.parent = this.gameObject.transform;
+		SegmentContainerGO.transform.localPosition = Vector3.zero;
+		SegmentContainerGO.transform.localScale = new Vector3(1f ,1f, 1f);
+		SegmentGroupGO = new GameObject ("SegmentGroupGO");
+		SegmentGroupGO.transform.parent = SegmentContainerGO.transform;
+		TargetGO = new GameObject ("TargetGO");
+		TargetGO.transform.parent = SegmentContainerGO.transform;
+		OldGO = new GameObject ("OldGO");
+		OldGO.transform.parent = SegmentContainerGO.transform;
+		Debug.Log ("Here");
+		initSegments ();
 	}
 
-	public void initSegments(Vector3 initialPos, Vector3 initialRot) {
+	public void initSegments() {
 		for (int i = 0; i < 8; i++) {
-			GameObject segmentObj = Instantiate (mapSegmentPrefab.gameObject,
-				new Vector3 (i % 2, (i / 4) % 2, (i / 2) % 2), Quaternion.identity) as GameObject;
+			if (SegmentContainerGO == null) {
+				Debug.Log ("OOPS");
+			}
+			GameObject segmentObj = Instantiate (mapSegmentPrefab.gameObject, SegmentContainerGO.transform) as GameObject;
+			segmentObj.gameObject.transform.localPosition = new Vector3 (i % 2, (i / 4) % 2, (i / 2) % 2);
+			segmentObj.gameObject.transform.localScale = new Vector3 (1, 1, 1);
 			Segment segment = segmentObj.GetComponent<Segment>();
 			segment.index = i;
 
@@ -72,7 +87,6 @@ public class Map : MonoBehaviour {
 	}
 
 	void onTouchedDown(int index) {
-		touchIndex = index;
 		touchDownPos = Input.mousePosition;
 		Segment touchedSegment = Segments [index];
 		Segment neighbourWithUser = null;
@@ -148,13 +162,13 @@ public class Map : MonoBehaviour {
 			this.isRotatedByUser = true;
 			this.axis = axis;
 			foreach (Segment segment in Segments.Values) {
-				segment.transform.SetParent (null);
+				segment.transform.parent = SegmentContainerGO.transform;
 			}
 
-			SegmentGroupGo.transform.position = center;
-			SegmentGroupGo.transform.eulerAngles = Vector3.zero;
+			SegmentGroupGO.transform.position = center;
+			SegmentGroupGO.transform.eulerAngles = Vector3.zero;
 			foreach (Segment segment in segmentList) {
-				segment.transform.parent = SegmentGroupGo.transform;
+				segment.transform.parent = SegmentGroupGO.transform;
 			}
 		}
 	}
@@ -164,16 +178,15 @@ public class Map : MonoBehaviour {
 			return;
 		}
 
-		touchIndex = -1;
 		isRotatedByUser = false;
 
-		TargetGo.transform.position = RotationCenter;
-		TargetGo.transform.eulerAngles = Vector3.zero;
+		TargetGO.transform.position = RotationCenter;
+		TargetGO.transform.eulerAngles = Vector3.zero;
 		float rotation = Mathf.RoundToInt (CurrentRotation / 90) * 90f;
-		TargetGo.transform.Rotate (axis, rotation);
+		TargetGO.transform.Rotate (axis, rotation);
 
-		OldGo.transform.position = SegmentGroupGo.transform.position;
-		OldGo.transform.rotation = SegmentGroupGo.transform.rotation;
+		OldGO.transform.position = SegmentGroupGO.transform.position;
+		OldGO.transform.rotation = SegmentGroupGO.transform.rotation;
 		isRotatedFinishing = true;
 	}
 	
@@ -190,13 +203,13 @@ public class Map : MonoBehaviour {
 			}
 
 			CurrentRotation %= 360;
-			SegmentGroupGo.transform.Rotate (axis, angleDelta);
+			SegmentGroupGO.transform.Rotate (axis, angleDelta);
 		} else if (isRotatedFinishing) {
-			SegmentGroupGo.transform.rotation = 
-				Quaternion.Lerp (OldGo.transform.rotation, TargetGo.transform.rotation, LerpProgerss);
+			SegmentGroupGO.transform.rotation = 
+				Quaternion.Lerp (OldGO.transform.rotation, TargetGO.transform.rotation, LerpProgerss);
 			LerpProgerss += Time.deltaTime * RotationLerpSpeed;
 			if (Mathf.Abs(LerpProgerss - 1) < lerpTreshold) {
-				SegmentGroupGo.transform.rotation = TargetGo.transform.rotation;
+				SegmentGroupGO.transform.rotation = TargetGO.transform.rotation;
 				isRotatedFinishing = false;
 				LerpProgerss = 0f;
 				CurrentRotation = 0f;

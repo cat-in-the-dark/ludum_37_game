@@ -12,6 +12,9 @@ public class WorldRotation : MonoBehaviour {
 	Vector3 axis = Vector3.zero;
 
 	GameObject roomGroupGO;
+	GameObject playerGO;
+	public GameObject mapPrefab;
+	Map mapComponent;
 
 	// Use this for initialization
 	void Start () {
@@ -19,6 +22,13 @@ public class WorldRotation : MonoBehaviour {
 			rooms [room.name] = room;
 			Debug.Log (room.name);
 		}
+
+		playerGO = GameObject.FindGameObjectWithTag ("Player");
+		GameObject map = (GameObject)Instantiate (mapPrefab, playerGO.transform);
+		mapComponent = map.GetComponent<Map> ();
+		mapComponent.transform.localPosition = new Vector3 (0.7f, 0, 4);
+		mapComponent.transform.localScale = new Vector3 (0.5F, 0.5F, 0.5F);
+
 		currentRotation = 0f;
 		roomGroupGO = new GameObject ("roomGroup");
 	}
