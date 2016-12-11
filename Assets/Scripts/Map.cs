@@ -196,6 +196,7 @@ public class Map : MonoBehaviour {
 				Quaternion.Lerp (OldGo.transform.rotation, TargetGo.transform.rotation, LerpProgerss);
 			LerpProgerss += Time.deltaTime * RotationLerpSpeed;
 			if (Mathf.Abs(LerpProgerss - 1) < lerpTreshold) {
+				SegmentGroupGo.transform.rotation = TargetGo.transform.rotation;
 				isRotatedFinishing = false;
 				LerpProgerss = 0f;
 				CurrentRotation = 0f;
