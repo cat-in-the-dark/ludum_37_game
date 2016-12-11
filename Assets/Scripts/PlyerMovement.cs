@@ -5,37 +5,57 @@ public class PlyerMovement : MonoBehaviour {
 	public float speed = 6f;
 	Vector3 movement;
 	Rigidbody playerRigidbody;
+	CharacterController characterController;
 
-	float rotationX = 0f;
-	float rotationY = 0f;
+	bool needLockScreen = true;
+	public float sense = 30f;
+	public float gravity = 1f;
+	public float mouseSensitivity = 5.0f;
+	public float upDownRange = 60.0f;
 
-	void Awake() {
-		playerRigidbody = GetComponent<Rigidbody> ();
-	}
+	float verticalRotation = 0.0f;
 
 	// Use this for initialization
-	void FixedUpdate () {
-		float h = Input.GetAxisRaw ("Horizontal");
-		float v = Input.GetAxisRaw("Vertical");
-	
-		float deltaRotationX = Input.GetAxis ("Mouse X");
-		float deltaRotationY = -Input.GetAxis ("Mouse Y");
-
-		Rotate (deltaRotationX, deltaRotationY);
-		Move (h, v);
+	void Start () {
+		characterController = GetComponent<CharacterController>();
+		//characterController.enabled = true;
 	}
 
+	// Update is called once per frame
+	void Update () {
+		if (Input.GetKeyDown ("escape")) {
+			print ("escape key was pressed");
+			needLockScreen = false;
+		}
+		if(needLockScreen)
+			Screen.lockCursor = true;
+		else
+			Screen.lockCursor = false;
+
+		float h = Input.GetAxisRaw ("Horizontal") * sense;
+		float v = Input.GetAxisRaw("Vertical") * sense;
+
+		float rotLeftRight = Input.GetAxis ("Mouse X") * mouseSensitivity;
+		transform.Rotate (0, rotLeftRight, 0);
+
+		verticalRotation -= Input.GetAxis ("Mouse Y") * mouseSensitivity;
+		verticalRotation = Mathf.Clamp (verticalRotation, -upDownRange, upDownRange);
+		Camera.main.transform.localRotation = Quaternion.Euler (verticalRotation, 0, 0);
+
+		Move (h, v);
+	}
 
 	void Move(float h, float v) {
 		movement.Set (h, 0f, v);
 		movement = movement.normalized * speed * Time.deltaTime;
 		movement = transform.TransformDirection (movement);
-		playerRigidbody.MovePosition (transform.position + movement);
-	}
-
-	void Rotate(float deltaRotationX, float deltaRotationY) {
-		rotationX += deltaRotationY; //  YES, IT IS SO! >_<
-		rotationY += deltaRotationX;
-		transform.localEulerAngles = new Vector3(rotationX, rotationY, 0);
+		if(characterController.isGrounded)
+			print("grounded");
+		else
+			print("not grounded");
+		//playerRigidbody.MovePosition (transform.position + movement);
+		characterController.Move(movement);		
+		characterController.Move(Vector3.down * gravity * Time.deltaTime);		
+		//playerRigidbody.AddForce (movement, ForceMode.Impulse);
 	}
 }
