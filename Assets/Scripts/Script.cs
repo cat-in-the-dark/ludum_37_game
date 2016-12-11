@@ -11,7 +11,6 @@ public class Script : MonoBehaviour {
 	void Start () {
 		GameObject map = (GameObject)Instantiate (mapPrefab);
 		mapComponent = map.GetComponent<Map>();
-		mapComponent.initSegments (new Vector3(0, 0, 0), new Vector3(0, 0, 0));
 	}
 	
 	// Update is called once per frame
