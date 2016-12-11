@@ -17,6 +17,7 @@ public class WorldRotation : MonoBehaviour {
 	void Start () {
 		foreach (GameObject room in GameObject.FindGameObjectsWithTag ("MiniRoom")) {
 			rooms [room.name] = room;
+			Debug.Log (room.name);
 		}
 		currentRotation = 0f;
 		roomGroupGO = new GameObject ("roomGroup");

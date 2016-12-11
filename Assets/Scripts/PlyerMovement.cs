@@ -24,7 +24,7 @@ public class PlyerMovement : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		if (Input.GetKeyDown ("escape")) {
-			print ("escape key was pressed");
+			Debug.Log ("escape key was pressed");
 			needLockScreen = false;
 		}
 		if(needLockScreen)
@@ -49,10 +49,10 @@ public class PlyerMovement : MonoBehaviour {
 		movement.Set (h, 0f, v);
 		movement = movement.normalized * speed * Time.deltaTime;
 		movement = transform.TransformDirection (movement);
-		if(characterController.isGrounded)
-			print("grounded");
-		else
-			print("not grounded");
+//		if(characterController.isGrounded)
+//			Debug.Log("grounded");
+//		else
+//			Debug.Log("not grounded");
 		//playerRigidbody.MovePosition (transform.position + movement);
 		characterController.Move(movement);		
 		characterController.Move(Vector3.down * gravity * Time.deltaTime);		
