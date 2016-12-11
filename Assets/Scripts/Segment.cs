@@ -30,26 +30,30 @@ public class Segment : MonoBehaviour {
 	void OnMouseDown() {
 		if (tounchDownCallback != null) {
 			tounchDownCallback (index);
+		} else {
+			Debug.Log ("WTF callback is null");
 		}
 	}
 
 	void OnMouseUp() {
 		if (touchUpCallback != null) {
 			touchUpCallback (index);
+		} else {
+			Debug.Log ("WTF callback is null");
 		}
 	}
 
 	public bool isNeighbour(Segment segment) {
 		return (this.index != segment.index
-			&& (this.transform.position - segment.transform.position).magnitude <= 1.01f);
+			&& (this.transform.localPosition - segment.transform.localPosition).magnitude <= 1.01f);
 	}
 
 	public Segment findNearest(List<Segment> segments) {
 		var minDist = Mathf.Infinity;
 		Segment nearestSegment = segments[0];
 		foreach (Segment segment in segments) {
-			var dist = (segment.gameObject.transform.position
-			           - this.gameObject.transform.position).magnitude;
+			var dist = (segment.gameObject.transform.localPosition
+			           - this.gameObject.transform.localPosition).magnitude;
 			if (dist < minDist) {
 				minDist = dist;
 				nearestSegment = segment;

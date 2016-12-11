@@ -87,6 +87,14 @@ public class Map : MonoBehaviour {
 	}
 
 	void onTouchedDown(int index) {
+		if (!isRotatedFinishing) {
+			foreach (Segment segment in Segments.Values) {
+				segment.transform.parent = SegmentContainerGO.transform;
+			}
+		} else {
+			Debug.Log ("still rotating");
+		}
+
 		touchDownPos = Input.mousePosition;
 		Segment touchedSegment = Segments [index];
 		Segment neighbourWithUser = null;
@@ -146,9 +154,9 @@ public class Map : MonoBehaviour {
 	Vector3 calcCenter(List<Segment> segmentList) {
 		Vector3 center = Vector3.zero;
 		foreach (Segment segment in segmentList) {
-			center.x += segment.transform.position.x;
-			center.y += segment.transform.position.y;
-			center.z += segment.transform.position.z;
+			center.x += segment.transform.localPosition.x;
+			center.y += segment.transform.localPosition.y;
+			center.z += segment.transform.localPosition.z;
 		}
 
 		var scale = 1.0f / segmentList.Count;
@@ -165,8 +173,8 @@ public class Map : MonoBehaviour {
 				segment.transform.parent = SegmentContainerGO.transform;
 			}
 
-			SegmentGroupGO.transform.position = center;
-			SegmentGroupGO.transform.eulerAngles = Vector3.zero;
+			SegmentGroupGO.transform.localPosition = center;
+			SegmentGroupGO.transform.localEulerAngles = Vector3.zero;
 			foreach (Segment segment in segmentList) {
 				segment.transform.parent = SegmentGroupGO.transform;
 			}
@@ -180,13 +188,13 @@ public class Map : MonoBehaviour {
 
 		isRotatedByUser = false;
 
-		TargetGO.transform.position = RotationCenter;
-		TargetGO.transform.eulerAngles = Vector3.zero;
+		TargetGO.transform.localPosition = RotationCenter;
+		TargetGO.transform.localEulerAngles = Vector3.zero;
 		float rotation = Mathf.RoundToInt (CurrentRotation / 90) * 90f;
 		TargetGO.transform.Rotate (axis, rotation);
 
-		OldGO.transform.position = SegmentGroupGO.transform.position;
-		OldGO.transform.rotation = SegmentGroupGO.transform.rotation;
+		OldGO.transform.localPosition = SegmentGroupGO.transform.localPosition;
+		OldGO.transform.localRotation = SegmentGroupGO.transform.localRotation;
 		isRotatedFinishing = true;
 	}
 	
@@ -205,14 +213,25 @@ public class Map : MonoBehaviour {
 			CurrentRotation %= 360;
 			SegmentGroupGO.transform.Rotate (axis, angleDelta);
 		} else if (isRotatedFinishing) {
-			SegmentGroupGO.transform.rotation = 
-				Quaternion.Lerp (OldGO.transform.rotation, TargetGO.transform.rotation, LerpProgerss);
+			SegmentGroupGO.transform.localRotation = 
+				Quaternion.Lerp (OldGO.transform.localRotation, TargetGO.transform.localRotation, LerpProgerss);
 			LerpProgerss += Time.deltaTime * RotationLerpSpeed;
 			if (Mathf.Abs(LerpProgerss - 1) < lerpTreshold) {
-				SegmentGroupGO.transform.rotation = TargetGO.transform.rotation;
+				SegmentGroupGO.transform.localRotation = TargetGO.transform.localRotation;
 				isRotatedFinishing = false;
 				LerpProgerss = 0f;
 				CurrentRotation = 0f;
+
+				/*foreach (Segment seg in Segments.Values) {
+					foreach (Segment seg1 in Segments.Values) {
+						Debug.Log (string.Format ("{0} -> {1}: {2}", seg.index, seg1.index, 
+							(seg.gameObject.transform.localPosition - seg1.gameObject.transform.localPosition).magnitude));
+					}
+				}
+
+				foreach (Segment seg in Segments.Values) {
+					Debug.Log (string.Format ("{0} -> {1}", seg.index, seg.transform.localPosition));
+				}*/
 			}
 		}
 	}

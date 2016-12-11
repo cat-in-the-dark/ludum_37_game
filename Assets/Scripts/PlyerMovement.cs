@@ -9,6 +9,7 @@ public class PlyerMovement : MonoBehaviour {
 	CharacterController characterController;
 
 	bool needLockScreen = true;
+	bool cursorLocked = true;
 	public float sense = 30f;
 	public float gravity = 1f;
 	public float mouseSensitivity = 5.0f;
@@ -22,12 +23,14 @@ public class PlyerMovement : MonoBehaviour {
 		//characterController.enabled = true;
 	}
 
+	public void setCursorState(bool locked) {
+		Debug.Log(string.Format("set retracted: {0}", locked));
+		cursorLocked = locked;
+	}
+
 	// Update is called once per frame
 	void Update () {
-		if (Input.GetKeyDown (KeyCode.P)) {
-			Debug.Log ("escape key was pressed");
-			needLockScreen = false;
-		}
+
 		if (Input.GetKeyDown (KeyCode.Escape)) {
 			Debug.Log ("Hard reset");
 			SceneManager.LoadScene (0);
@@ -39,17 +42,26 @@ public class PlyerMovement : MonoBehaviour {
 			Cursor.lockState = CursorLockMode.None;
 		}
 
-		float h = Input.GetAxisRaw ("Horizontal") * sense;
-		float v = Input.GetAxisRaw("Vertical") * sense;
+		if (cursorLocked) {
+			float h = Input.GetAxisRaw ("Horizontal") * sense;
+			float v = Input.GetAxisRaw ("Vertical") * sense;
 
-		float rotLeftRight = Input.GetAxis ("Mouse X") * mouseSensitivity;
-		transform.Rotate (0, rotLeftRight, 0);
+			float rotLeftRight = Input.GetAxis ("Mouse X") * mouseSensitivity;
+			transform.Rotate (0, rotLeftRight, 0);
 
-		verticalRotation -= Input.GetAxis ("Mouse Y") * mouseSensitivity;
-		verticalRotation = Mathf.Clamp (verticalRotation, -upDownRange, upDownRange);
-		Camera.main.transform.localRotation = Quaternion.Euler (verticalRotation, 0, 0);
+			verticalRotation -= Input.GetAxis ("Mouse Y") * mouseSensitivity;
+			verticalRotation = Mathf.Clamp (verticalRotation, -upDownRange, upDownRange);
+			Camera.main.transform.localRotation = Quaternion.Euler (verticalRotation, 0, 0);
+			Move (h, v);
+		} else {
+			float rotLeftRight = Input.GetAxis ("Mouse X") * mouseSensitivity;
+			transform.Rotate (0, rotLeftRight, 0);
 
-		Move (h, v);
+			verticalRotation -= Input.GetAxis ("Mouse Y") * mouseSensitivity;
+			verticalRotation = Mathf.Clamp (verticalRotation, -upDownRange, upDownRange);
+			Camera.main.transform.localRotation = Quaternion.Euler (verticalRotation, 0, 0);
+			Move (0, 0);
+		}
 	}
 
 	void Move(float h, float v) {

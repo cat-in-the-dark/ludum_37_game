@@ -13,8 +13,18 @@ public class WorldRotation : MonoBehaviour {
 
 	GameObject roomGroupGO;
 	GameObject playerGO;
+	PlyerMovement movement;
 	public GameObject mapPrefab;
 	Map mapComponent;
+
+	Vector3 initialMapPos = new Vector3 (0.7f, 0, 2);
+	Vector3 deployedMapPos = new Vector3 (0, 0, 1);
+	float moveMapSpeed = 5f;
+	bool deployingMap = false;
+	bool retractingMap = false;
+	bool mapRetracted = true;
+	float lerpTreshold = 0.02f;
+	float lerpProgress = 0f;
 
 	// Use this for initialization
 	void Start () {
@@ -24,6 +34,7 @@ public class WorldRotation : MonoBehaviour {
 		}
 
 		playerGO = GameObject.FindGameObjectWithTag ("Player");
+		movement = playerGO.GetComponent<PlyerMovement> ();
 		GameObject map = (GameObject)Instantiate (mapPrefab, playerGO.transform);
 		mapComponent = map.GetComponent<Map> ();
 		mapComponent.transform.localPosition = new Vector3 (0.7f, 0, 2);
@@ -75,8 +86,76 @@ public class WorldRotation : MonoBehaviour {
 				axis: Vector3.right);
 		}
 
+		if (Input.GetKeyDown (KeyCode.Space)) {
+			if (mapRetracted && !retractingMap) {
+				deployingMap = true;
+			} else if (!mapRetracted && !deployingMap) {
+				retractingMap = true;
+			}
+		}
+
+		if (mapComponent != null) {
+			if (Input.GetKeyDown (KeyCode.Alpha0)) {
+				mapComponent.setUserPresent (0);
+			}
+
+			if (Input.GetKeyDown (KeyCode.Alpha1)) {
+				mapComponent.setUserPresent (1);
+			}
+
+			if (Input.GetKeyDown (KeyCode.Alpha2)) {
+				mapComponent.setUserPresent (2);
+			}
+
+			if (Input.GetKeyDown (KeyCode.Alpha3)) {
+				mapComponent.setUserPresent (3);
+			}
+
+			if (Input.GetKeyDown (KeyCode.Alpha4)) {
+				mapComponent.setUserPresent (4);
+			}
+
+			if (Input.GetKeyDown (KeyCode.Alpha5)) {
+				mapComponent.setUserPresent (5);
+			}
+
+			if (Input.GetKeyDown (KeyCode.Alpha6)) {
+				mapComponent.setUserPresent (6);
+			}
+
+			if (Input.GetKeyDown (KeyCode.Alpha7)) {
+				mapComponent.setUserPresent (7);
+			}
+		}
+
 		if (rotating) {
 			Rotate (roomGroup, axis);
+		}
+
+		if (deployingMap) {
+			mapComponent.transform.localPosition = Vector3.Slerp ( initialMapPos, deployedMapPos, lerpProgress);
+			lerpProgress += moveMapSpeed * Time.deltaTime;
+			if (Mathf.Abs (lerpProgress - 1) < lerpTreshold) {
+				mapComponent.transform.localPosition = deployedMapPos;
+				Debug.Log ("deployed");
+				deployingMap = false;
+				mapRetracted = false;
+				lerpProgress = 0;
+				movement.setCursorState (mapRetracted);
+			}
+		}
+
+		if (retractingMap) {
+			mapComponent.transform.localPosition = Vector3.Slerp (deployedMapPos, initialMapPos, lerpProgress);
+			lerpProgress += moveMapSpeed * Time.deltaTime;
+			if (Mathf.Abs (lerpProgress - 1) < lerpTreshold) {
+				mapComponent.transform.localPosition = initialMapPos;
+				Debug.Log ("retracted");
+				retractingMap = false;
+				mapRetracted = true;
+				lerpProgress = 0;
+				movement.setCursorState (mapRetracted);
+			}
 		}
 	}
 
