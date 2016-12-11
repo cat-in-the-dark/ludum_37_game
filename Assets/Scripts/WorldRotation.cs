@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 public class WorldRotation : MonoBehaviour {
 	public float angleSpeed;
+	public AudioSource rotateSound;
 
 	IDictionary<string, GameObject> rooms = new Dictionary<string, GameObject>();
 	float currentRotation;
@@ -148,6 +149,7 @@ public class WorldRotation : MonoBehaviour {
 		if (retractingMap) {
 			mapComponent.transform.localPosition = Vector3.Slerp (deployedMapPos, initialMapPos, lerpProgress);
 			lerpProgress += moveMapSpeed * Time.deltaTime;
+			print (lerpProgress);
 			if (Mathf.Abs (lerpProgress - 1) < lerpTreshold) {
 				mapComponent.transform.localPosition = initialMapPos;
 				Debug.Log ("retracted");
@@ -162,6 +164,9 @@ public class WorldRotation : MonoBehaviour {
 
 	void StartRotation(int[] roomGroup, Vector3 axis) {
 		if (!this.rotating) {
+			if (rotateSound != null) {
+				rotateSound.Play ();
+			}
 			this.rotating = true;
 			this.currentRotation = 0f;
 			this.roomGroup = roomGroup; 
