@@ -24,9 +24,14 @@ public class PlyerMovement : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
-		if (Input.GetKeyDown ("escape")) {
+		if (Input.GetKeyDown (KeyCode.P)) {
 			Debug.Log ("escape key was pressed");
 			needLockScreen = false;
+		}
+		if (Input.GetKeyDown (KeyCode.Escape)) {
+			Debug.Log ("Hard reset");
+			SceneManager.LoadScene (0);
+			return;
 		}
 		if (needLockScreen) {
 			Cursor.lockState = CursorLockMode.Locked;
