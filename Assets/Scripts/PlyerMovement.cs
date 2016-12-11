@@ -54,8 +54,8 @@ public class PlyerMovement : MonoBehaviour {
 			Camera.main.transform.localRotation = Quaternion.Euler (verticalRotation, 0, 0);
 			Move (h, v);
 		} else {
-			float rotLeftRight = Input.GetAxis ("Mouse X") * mouseSensitivity;
-			transform.Rotate (0, rotLeftRight, 0);
+			//float rotLeftRight = Input.GetAxis ("Mouse X") * mouseSensitivity;
+			//transform.Rotate (0, rotLeftRight, 0);
 
 			verticalRotation -= Input.GetAxis ("Mouse Y") * mouseSensitivity;
 			verticalRotation = Mathf.Clamp (verticalRotation, -upDownRange, upDownRange);
