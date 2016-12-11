@@ -8,4 +8,8 @@ public class MainMenu : MonoBehaviour {
 		Debug.Log ("Game Started");
 		SceneManager.LoadScene (1, LoadSceneMode.Single);
 	}
+
+	public void Start() {
+		Cursor.lockState = CursorLockMode.None;
+	}
 }

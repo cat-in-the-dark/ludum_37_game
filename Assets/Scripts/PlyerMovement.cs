@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class PlyerMovement : MonoBehaviour {
 	public float speed = 6f;
@@ -27,10 +28,11 @@ public class PlyerMovement : MonoBehaviour {
 			Debug.Log ("escape key was pressed");
 			needLockScreen = false;
 		}
-		if(needLockScreen)
-			Screen.lockCursor = true;
-		else
-			Screen.lockCursor = false;
+		if (needLockScreen) {
+			Cursor.lockState = CursorLockMode.Locked;
+		} else {
+			Cursor.lockState = CursorLockMode.None;
+		}
 
 		float h = Input.GetAxisRaw ("Horizontal") * sense;
 		float v = Input.GetAxisRaw("Vertical") * sense;
@@ -57,5 +59,21 @@ public class PlyerMovement : MonoBehaviour {
 		characterController.Move(movement);		
 		characterController.Move(Vector3.down * gravity * Time.deltaTime);		
 		//playerRigidbody.AddForce (movement, ForceMode.Impulse);
+	}
+
+	void OnTriggerEnter(Collider other) {
+		Debug.Log (string.Format ("{0} {1}", other.name, other.tag));
+		if (other.tag == "Finish") {
+			var scene = SceneManager.GetActiveScene ();
+			Debug.Log (string.Format ("Level Finished {0} {1}", scene.name, scene.buildIndex));
+			Debug.Log (SceneManager.sceneCountInBuildSettings.ToString ());
+			if (SceneManager.sceneCountInBuildSettings -1 > scene.buildIndex) {
+				Debug.Log ("Next level");
+				SceneManager.LoadScene (scene.buildIndex + 1);
+			} else {
+				Debug.Log ("Go to menu");
+				SceneManager.LoadScene (0);
+			}
+		}
 	}
 }
