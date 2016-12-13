@@ -95,3 +95,4 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+.vscode
