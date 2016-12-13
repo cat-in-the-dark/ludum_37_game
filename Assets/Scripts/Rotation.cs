@@ -78,7 +78,7 @@ public class Rotation : MonoBehaviour {
 
 	void Rotate(GameObject[] cubes, Vector3 axis) {
 		if (Mathf.Abs (currentRotation) >= 90.0f) {
-			roomGroupGO.transform.eulerAngles = axis * 90.0f;
+			roomGroupGO.transform.eulerAngles = axis * 90.0f * rotateDirection;
 			rotating = false;
 			return;
 		} else {
