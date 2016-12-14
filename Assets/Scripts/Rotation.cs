@@ -87,18 +87,10 @@ public class Rotation : MonoBehaviour {
 		var angleDelta = angleSpeed * Time.deltaTime;
 		currentRotation += angleDelta;
 		var roomGroup = new List<GameObject>();
-		var center = Vector3.zero;
 		foreach (var cube in cubes) {
 			roomGroup.Add (cube);
-			center.x += cube.transform.position.x;
-			center.y += cube.transform.position.y;
-			center.z += cube.transform.position.z;
 		}
 
-		var scale = 1.0f / cubes.Length;
-		center.Scale (new Vector3(scale, scale, scale));
-
-		roomGroupGO.transform.position = center;
 		foreach (var room in roomGroup) {
 			room.transform.parent = roomGroupGO.transform;
 		}
