@@ -18,11 +18,6 @@ public class Rotation : MonoBehaviour {
 			rooms.Add(room.gameObject);
 		}
 
-		// Debug.Log("Hello world");
-		// Vector3 point = new Vector3(-1f, -1f, 1f);
-		// Quaternion quaternion = Quaternion.AngleAxis(90f, Vector3.right);
-		// Debug.Log((quaternion * point).ToString());
-
 		roomGroupGO = new GameObject ("cubesGroup");
 		roomGroupGO.transform.SetParent(this.transform);
 	}
