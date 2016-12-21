@@ -29,7 +29,7 @@ public class AudioController : MonoBehaviour {
 	
 	void OnLevelFinishedLoading(Scene scene, LoadSceneMode mode) {
 		Debug.Log(scene.name);
-		if (scene.name == "LogoScene" || scene.name == "Scenes/MainMenu") {
+		if (scene.name == "LogoScene" || scene.name == "MainMenu") {
 			background.Stop ();
 		} else {
 			if (!background.isPlaying) {
